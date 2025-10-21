@@ -148,7 +148,7 @@ Este flujo orquestará todo el proceso.
 
 == Ejercicios Propuestos
 
-==== Ejercicio 1: Notificación de Errores Mejorada (Dificultad: Baja)
+=== Ejercicio 1: Notificación de Errores Mejorada (Dificultad: Baja)
 
 *Objetivo:* Mejorar el "Manejador de Errores" para que, además de registrar el error en Google Sheets, envíe una notificación por correo electrónico.
 
@@ -159,7 +159,7 @@ Este flujo orquestará todo el proceso.
 . Configure el nodo para enviar un correo con un asunto claro (ej. "¡Alerta de Error en n8n!").
 . En el cuerpo del correo, incluya la misma información que se registra en Google Sheets (nombre del flujo, nodo, mensaje y URL), utilizando las expresiones del `Error Trigger`.
 
-==== Ejercicio 2: Sub-Flujo de Validación de Datos (Dificultad: Media)
+=== Ejercicio 2: Sub-Flujo de Validación de Datos (Dificultad: Media)
 
 *Objetivo:* Crear un sub-flujo de trabajo reutilizable que valide la estructura de los datos de un producto y lance un error si faltan campos clave.
 
@@ -175,7 +175,7 @@ Este flujo orquestará todo el proceso.
 . Llame al sub-flujo "Validador de Productos" con el nodo `Execute Workflow`.
 . Asegúrese de que el flujo principal tiene configurado el "Manejador de Errores" y verifique que el error personalizado se registra correctamente en su hoja de Google Sheets.
 
-==== Ejercicio 3: Orquestador de Tareas Dinámicas (Dificultad: Alta)
+=== Ejercicio 3: Orquestador de Tareas Dinámicas (Dificultad: Alta)
 
 *Objetivo:* Crear un flujo principal que decide qué tarea realizar y llama al sub-flujo apropiado para ejecutarla.
 
