@@ -1,0 +1,206 @@
+:encoding: utf-8
+:lang: es
+:toc: right
+:toc-title: Tabla de contenidos
+:doctype: book
+:imagesdir: ./images
+:source-highlighter: highlight.js
+
+////
+Nombre - Titulo
+////
+# Práctica 4: Robustez y Modularidad - Manejo de Errores y Sub-Flujos de Trabajo
+Tutorial básico de n8n
+Manel Mena <manel.mena@ual.es>
+
+// Modo no numerado de apartados
+:numbered!: 
+
+[abstract]
+== Resumen
+
+Resumen la Práctica 4
+
+.Objetivos
+
+* Diseño de Flujos de Trabajo Resilientes:.
+* Manejo de Errores Centralizado.
+* Control de Errores Proactivo
+* Principios de Modularidad (DRY).
+* Implementación de Sub-Flujos de Trabajo.
+
+// Modo numerado
+:numbered:
+
+== Objetivos de la Práctica
+
+A medida que los flujos de trabajo aumentan en complejidad y se vuelven críticos para los procesos de negocio, su fiabilidad y mantenibilidad se convierten en prioridades. Esta práctica introduce dos de los conceptos más importantes para la construcción de automatizaciones a nivel de producción: el manejo de errores y la modularidad a través de sub-flujos de trabajo. Se aprenderá a diseñar sistemas que no solo ejecutan tareas, sino que también reaccionan de forma inteligente a los fallos y están estructurados de manera limpia y reutilizable.
+
+Al finalizar esta sesión, el estudiante habrá desarrollado las siguientes competencias:
+
+* *Diseño de Flujos de Trabajo Resilientes:* Comprender la importancia del manejo de errores y diseñar sistemas que puedan detectar, registrar y notificar fallos de ejecución.
+* *Manejo de Errores Centralizado:* Implementar un flujo de trabajo de manejo de errores dedicado utilizando el `Error Trigger` para capturar y procesar fallos de otros flujos de trabajo de manera centralizada.
+* *Control de Errores Proactivo:* Utilizar el nodo `Stop and Error` para detener deliberadamente un flujo de trabajo y lanzar un error personalizado cuando se cumplen ciertas condiciones (por ejemplo, validación de datos fallida).
+* *Principios de Modularidad (DRY):* Aplicar el principio "Don't Repeat Yourself" (No te repitas) a la automatización de flujos de trabajo mediante la creación de lógica reutilizable.
+* *Implementación de Sub-Flujos de Trabajo:* Construir y ejecutar flujos de trabajo modulares utilizando el par de nodos `Execute Workflow` (para llamar a un sub-flujo) y `Execute Workflow Trigger` (para iniciar un sub-flujo), permitiendo la encapsulación de lógica de negocio.
+
+== Fundamentos Teóricos
+
+=== Manejo de Errores: Construyendo Flujos de Trabajo Robustos
+
+Hasta ahora, si un nodo en nuestro flujo de trabajo fallaba (por ejemplo, una API no estaba disponible o los datos de entrada eran incorrectos), la ejecución simplemente se detenía. En un entorno de producción, esto es inaceptable. Necesitamos un mecanismo para detectar estos fallos y actuar en consecuencia, ya sea para reintentar la operación, notificar a un administrador o registrar el incidente para su posterior análisis.
+
+n8n proporciona un sistema de manejo de errores elegante y potente basado en un flujo de trabajo especial.
+
+* *El `Error Trigger`:* Este es un tipo especial de disparador que, en lugar de reaccionar a un horario o a un webhook, se activa cuando otro flujo de trabajo falla. Un flujo de trabajo que comienza con un `Error Trigger` se conoce como un "flujo de trabajo de errores" (Error Workflow).
+
+* *Configuración del Flujo de Trabajo de Errores:* En la configuración de cualquier flujo de trabajo (en el menú de tres puntos > Settings), hay una opción llamada "Error Workflow". Aquí, se puede seleccionar el flujo de trabajo que contiene el `Error Trigger`. Una vez configurado, si el flujo de trabajo principal falla, n8n detendrá su ejecución y activará inmediatamente el flujo de trabajo de errores designado.
+
+* *Datos del Error:* El `Error Trigger` no se activa en vacío. Proporciona un objeto JSON rico en información sobre el fallo, que incluye:
+** `execution.error.message`: El mensaje de error específico.
+** `execution.lastNodeExecuted`: El nombre del nodo que falló.
+** `workflow.name`: El nombre del flujo de trabajo que falló.
+** `execution.url`: Un enlace directo a la ejecución fallida en la interfaz de n8n para una depuración rápida.
+Esto permite que el flujo de trabajo de errores envíe notificaciones muy detalladas (por ejemplo, "El flujo 'Procesar Pedidos' ha fallado en el nodo 'Actualizar Base de Datos' con el error: 'Conexión rechazada'").
+
+* *El Nodo `Stop and Error`:* A veces, un flujo de trabajo no falla debido a un error técnico, sino porque los datos no cumplen con las condiciones de negocio esperadas. Por ejemplo, una API devuelve un producto sin precio. El flujo podría continuar, pero podría causar problemas más adelante. El nodo `Stop and Error` permite manejar esto de forma proactiva. Cuando un ítem llega a este nodo, la ejecución del flujo de trabajo se detiene inmediatamente y se considera un fallo. Esto activará el flujo de trabajo de errores. Se puede configurar un mensaje de error personalizado, lo que permite un control total sobre por qué y cómo falla un flujo de trabajo.
+
+=== Modularidad: Sub-Flujos de Trabajo (Sub-Workflows)
+
+A medida que se construyen más automatizaciones, se encontrarán patrones de lógica que se repiten. Por ejemplo, el proceso de registrar un evento en una hoja de Google Sheets y luego enviar una notificación a Slack puede ser necesario en muchos flujos de trabajo diferentes. Copiar y pegar estos nodos en cada flujo es ineficiente y propenso a errores. Si se necesita cambiar la lógica de notificación, habría que actualizarla en todos los lugares donde se copió.
+
+n8n resuelve este problema con los sub-flujos de trabajo, que permiten encapsular lógica reutilizable. Este sistema se basa en dos nodos que trabajan en conjunto:
+
+* *`Execute Workflow Trigger`:* Este nodo actúa como el punto de entrada para un sub-flujo de trabajo. En lugar de un `Manual Trigger` o `Schedule Trigger`, un flujo de trabajo que comienza con este disparador esperará a ser llamado por otro flujo de trabajo. Puede ser configurado para recibir datos del flujo de trabajo que lo llama.
+
+* *`Execute Workflow`:* Este nodo se coloca en el flujo de trabajo "principal" (o "padre"). Se configura para apuntar a un sub-flujo de trabajo (el que tiene el `Execute Workflow Trigger`). Cuando la ejecución llega a este nodo, el flujo principal se pausa, pasa los datos de entrada al sub-flujo, y espera a que el sub-flujo termine. Una vez que el sub-flujo ha completado su ejecución, devuelve sus datos de salida al nodo `Execute Workflow`, y el flujo principal reanuda su ejecución.
+
+Este patrón es increíblemente poderoso. Permite crear una "biblioteca" de flujos de trabajo de utilidad (como "EnviarNotificacion", "ValidarDatosDeUsuario", "GenerarInformePDF") que pueden ser llamados desde cualquier otro flujo de trabajo, promoviendo un diseño limpio, modular y fácil de mantener.
+
+== Desarrollo del Flujo de Trabajo Guiado
+
+En esta práctica, construiremos un sistema de tres flujos de trabajo: un flujo principal que procesa una lista de URLs de imágenes, un sub-flujo que intenta descargar cada imagen, y un flujo de errores que registra cualquier fallo en el proceso en una hoja de Google Sheets.
+
+=== Paso 1: Crear el Flujo de Trabajo de Errores
+
+Este será nuestro "centro de monitoreo".
+
+. Cree un nuevo flujo de trabajo y nómbrelo "Manejador de Errores".
+. Añada el `Error Trigger` como primer nodo. No requiere configuración.
+. Prepare una hoja de Google Sheets con las cabeceras: `Timestamp`, `Workflow Fallido`, `Nodo Fallido`, `Mensaje de Error`, `URL de Ejecución`.
+. Conecte un nodo `Google Sheets` al `Error Trigger`.
+. Configure el nodo `Google Sheets` con la operación `Append Row` para que escriba en la hoja que acaba de crear. Mapee los datos del `Error Trigger`:
+** `Timestamp`: `{{ $now }}`
+** `Workflow Fallido`: `{{ $json.workflow.name }}`
+** `Nodo Fallido`: `{{ $json.execution.lastNodeExecuted }}`
+** `Mensaje de Error`: `{{ $json.execution.error.message }}`
+** `URL de Ejecución`: `{{ $json.execution.url }}`
+. Guarde este flujo de trabajo. No necesita ser activado.
+
+=== Paso 2: Crear el Sub-Flujo de Trabajo "Descargador de Imágenes"
+
+Esta será nuestra pieza de lógica reutilizable.
+
+. Cree un nuevo flujo de trabajo y nómbrelo "Sub-flujo: Descargador de Imágenes".
+. Añada el `Execute Workflow Trigger` como primer nodo. Este nodo recibirá la URL de la imagen a descargar.
+. Conecte un nodo `HTTP Request` al disparador.
+. Configure el `HTTP Request`:
+** *URL:* `{{ $json.imageUrl }}` (Asumimos que el flujo principal enviará un objeto con esta clave).
+** *Options > Response Format:* `File`. Esto le dice a n8n que espere datos binarios como respuesta.
+. (Opcional) Conecte un nodo `Google Drive` o `Write Binary File` para guardar la imagen descargada.
+. Guarde y active este flujo de trabajo. Anote su ID de la URL del navegador (el número al final).
+
+=== Paso 3: Crear el Flujo de Trabajo Principal
+
+Este flujo orquestará todo el proceso.
+
+. Cree un nuevo flujo de trabajo y nómbrelo "Procesador Principal de Imágenes".
+. *Configurar el Manejador de Errores:*
+** Vaya a *Options > Settings*.
+** En el desplegable *Error Workflow*, seleccione su flujo "Manejador de Errores".
+** Guarde la configuración.
+. *Simular Datos de Entrada:*
+** Añada un `Manual Trigger`.
+** Conecte un nodo `Edit Fields (Set)` para crear una lista de URLs, incluyendo una que sea deliberadamente incorrecta para forzar un error.
+*** *Name:* `imageUrls`
+*** *Value (Expression):*
++
+[source,json]
+----
+[
+  {"imageUrl": "https://random.dog/woof.json"},
+  {"imageUrl": "https://randomfox.ca/floof/"},
+  {"imageUrl": "https://esta-url-no-existe.xyz/imagen.jpg"}
+]
+----
+*** Asegúrese de que el tipo de dato sea `JSON`.
+. *Procesar la Lista:*
+** Conecte un nodo `Split Out` para separar la lista en ítems individuales.
+** *Field To Split Out:* `imageUrls`
+. *Llamar al Sub-Flujo:*
+** Conecte un nodo `Execute Workflow` al `Split Out`.
+** *Workflow ID:* Introduzca el ID del sub-flujo "Descargador de Imágenes" que anotó anteriormente.
+** El nodo pasará automáticamente el ítem actual (`{ "json": { "imageUrl": "..." } }`) como entrada al sub-flujo.
+. *Ejecutar y Verificar:*
+** Ejecute el flujo de trabajo principal manualmente.
+** La ejecución se mostrará como fallida. Al inspeccionarla, verá que el nodo `Execute Workflow` que intentó procesar la URL incorrecta está marcado en rojo.
+** Abra su hoja de Google Sheets. Debería haber una nueva fila registrando el error, con todos los detalles del fallo: el nombre del flujo principal, el nodo `Execute Workflow` como el que falló, y el mensaje de error del `HTTP Request` del sub-flujo (por ejemplo, "ENOTFOUND").
+
+== Ejercicios Propuestos
+
+==== Ejercicio 1: Notificación de Errores Mejorada (Dificultad: Baja)
+
+*Objetivo:* Mejorar el "Manejador de Errores" para que, además de registrar el error en Google Sheets, envíe una notificación por correo electrónico.
+
+*Requisitos:*
+
+. Modifique el flujo de trabajo "Manejador de Errores".
+. Añada un nodo `Send Email` (o un nodo de Slack/Telegram si lo prefiere).
+. Configure el nodo para enviar un correo con un asunto claro (ej. "¡Alerta de Error en n8n!").
+. En el cuerpo del correo, incluya la misma información que se registra en Google Sheets (nombre del flujo, nodo, mensaje y URL), utilizando las expresiones del `Error Trigger`.
+
+==== Ejercicio 2: Sub-Flujo de Validación de Datos (Dificultad: Media)
+
+*Objetivo:* Crear un sub-flujo de trabajo reutilizable que valide la estructura de los datos de un producto y lance un error si faltan campos clave.
+
+*API a utilizar:* Fake Store API (`https://fakestoreapi.com/products/1`)
+
+*Requisitos:*
+
+. Cree un sub-flujo llamado "Sub-flujo: Validador de Productos" que comience con un `Execute Workflow Trigger`.
+. Dentro de este sub-flujo, use un nodo `IF` para comprobar si los campos `title` Y `price` existen y no están vacíos. (Pista: puede necesitar varias condiciones con el operador `AND`).
+. Si la condición es `false` (falta alguno de los campos), conecte un nodo `Stop and Error` con el mensaje "Validación fallida: Faltan campos de producto obligatorios".
+. Cree un flujo principal que llame a la Fake Store API para obtener un producto.
+. (Para forzar el error) Añada un nodo `Edit Fields (Set)` después de la llamada a la API para *eliminar* el campo `price` del objeto del producto.
+. Llame al sub-flujo "Validador de Productos" con el nodo `Execute Workflow`.
+. Asegúrese de que el flujo principal tiene configurado el "Manejador de Errores" y verifique que el error personalizado se registra correctamente en su hoja de Google Sheets.
+
+==== Ejercicio 3: Orquestador de Tareas Dinámicas (Dificultad: Alta)
+
+*Objetivo:* Crear un flujo principal que decide qué tarea realizar y llama al sub-flujo apropiado para ejecutarla.
+
+*APIs a utilizar:*
+* Bored API para actividades: `https://bored-api.appbrewery.com/random`
+* Public Holidays API: `https://date.nager.at/api/v3/PublicHolidays/2025/ES`
+
+*Requisitos:*
+
+. Cree dos sub-flujos simples:
+** "Sub-flujo: Obtener Actividad": Llama a la Bored API y devuelve la actividad.
+** "Sub-flujo: Obtener Festivos": Llama a la API de festivos y devuelve la lista de festivos.
+. Cree un flujo principal que comience con un `Manual Trigger`.
+. Añada un nodo `Edit Fields (Set)` que cree una variable de control, por ejemplo, `{"tarea": "actividad"}`.
+. Use un nodo `Switch` que evalúe el campo `tarea`.
+** Si `tarea` es "actividad", conecte un nodo `Execute Workflow` que llame al sub-flujo "Obtener Actividad".
+** Si `tarea` es "festivos", conecte un nodo `Execute Workflow` que llame al sub-flujo "Obtener Festivos".
+. Conecte un nodo `Merge` a las salidas de ambos nodos `Execute Workflow` para consolidar el resultado.
+. Añada un nodo `Edit Fields (Set)` final para verificar la salida. Pruebe el flujo cambiando el valor de la variable `tarea` a "festivos" y vuelva a ejecutarlo para confirmar que se llama al sub-flujo correcto.
+
+== Sección 5: Conclusiones y Avance de la Próxima Práctica
+
+En esta práctica, hemos elevado nuestras habilidades de diseño de automatización a un nuevo nivel, centrándonos en la robustez y la reutilización. Ahora somos capaces de construir sistemas que no solo funcionan en condiciones ideales, sino que también gestionan los fallos de manera predecible. La modularización mediante sub-flujos de trabajo nos permite crear soluciones más limpias, escalables y fáciles de mantener.
+
+En la próxima práctica, nos adentraremos en el núcleo de la persistencia y la comunicación de datos en arquitecturas de software modernas. Exploraremos los siguientes temas avanzados:
+
+* *Integración con Bases de Datos:* Interactuaremos directamente con *bases de datos* relacionales como PostgreSQL o MySQL para persistir y consultar datos de forma estructurada, superando las limitaciones de las hojas de cálculo.
+* *Colas de Mensajes:* Introduciremos el concepto de *colas de mensajes* (por ejemplo, RabbitMQ o AWS SQS) para desacoplar sistemas y gestionar flujos de trabajo de manera asíncrona, un patrón fundamental en arquitecturas de microservicios.
