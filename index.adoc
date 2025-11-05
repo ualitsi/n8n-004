@@ -203,4 +203,5 @@ En esta práctica, hemos elevado nuestras habilidades de diseño de automatizaci
 En la próxima práctica, nos adentraremos en el núcleo de la persistencia y la comunicación de datos en arquitecturas de software modernas. Exploraremos los siguientes temas avanzados:
 
 * *Integración con Bases de Datos:* Interactuaremos directamente con *bases de datos* relacionales como PostgreSQL o MySQL para persistir y consultar datos de forma estructurada, superando las limitaciones de las hojas de cálculo.
+
 * *Colas de Mensajes:* Introduciremos el concepto de *colas de mensajes* (por ejemplo, RabbitMQ o AWS SQS) para desacoplar sistemas y gestionar flujos de trabajo de manera asíncrona, un patrón fundamental en arquitecturas de microservicios.
