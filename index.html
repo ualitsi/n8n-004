@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.22">
+<meta name="generator" content="Asciidoctor.js 4.0.6">
 <meta name="author" content="Tutorial básico de n8n">
 <title>Práctica 4: Robustez y Modularidad - Manejo de Errores y Sub-Flujos de Trabajo</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CNoto+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
 /* Uncomment the following line when using as a custom stylesheet */
@@ -95,10 +95,10 @@ dl dd{margin-bottom:1.25em}
 blockquote{margin:0 0 1.25em;padding:.5625em 1.25em 0 1.1875em;border-left:1px solid #ddd}
 blockquote,blockquote p{line-height:1.6;color:rgba(0,0,0,.85)}
 @media screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
-h1{font-size:2.75em}
-h2{font-size:2.3125em}
-h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
-h4{font-size:1.4375em}}
+  h1{font-size:2.75em}
+  h2{font-size:2.3125em}
+  h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
+  h4{font-size:1.4375em}}
 table{background:#fff;margin-bottom:1.25em;border:1px solid #dedede;word-wrap:normal}
 table thead,table tfoot{background:#f7f8f7}
 table thead tr th,table thead tr td,table tfoot tr th,table tfoot tr td{padding:.5em .625em .625em;font-size:inherit;color:rgba(0,0,0,.8);text-align:left}
@@ -117,7 +117,6 @@ h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title str
 :not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed}
 pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
 pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
-pre>code{display:block}
 pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
 em em{font-style:normal}
 strong strong{font-weight:400}
@@ -162,21 +161,21 @@ p a>code:hover{color:rgba(0,0,0,.9)}
 #toc a:active{text-decoration:underline}
 #toctitle{color:#7a2518;font-size:1.2em}
 @media screen and (min-width:768px){#toctitle{font-size:1.375em}
-body.toc2{padding-left:15em;padding-right:0}
-body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
-#toc.toc2{margin-top:0!important;background:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #e7e7e9;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
-#toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
-#toc.toc2>ul{font-size:.9em;margin-bottom:0}
-#toc.toc2 ul ul{margin-left:0;padding-left:1em}
-#toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
-body.toc2.toc-right{padding-left:0;padding-right:15em}
-body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #e7e7e9;left:auto;right:0}}
+  body.toc2{padding-left:15em;padding-right:0}
+  body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
+  #toc.toc2{margin-top:0!important;background:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #e7e7e9;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
+  #toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
+  #toc.toc2>ul{font-size:.9em;margin-bottom:0}
+  #toc.toc2 ul ul{margin-left:0;padding-left:1em}
+  #toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
+  body.toc2.toc-right{padding-left:0;padding-right:15em}
+  body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #e7e7e9;left:auto;right:0}}
 @media screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
-#toc.toc2{width:20em}
-#toc.toc2 #toctitle{font-size:1.375em}
-#toc.toc2>ul{font-size:.95em}
-#toc.toc2 ul ul{padding-left:1.25em}
-body.toc2.toc-right{padding-left:0;padding-right:20em}}
+  #toc.toc2{width:20em}
+  #toc.toc2 #toctitle{font-size:1.375em}
+  #toc.toc2>ul{font-size:.95em}
+  #toc.toc2 ul ul{padding-left:1.25em}
+  body.toc2.toc-right{padding-left:0;padding-right:20em}}
 #content #toc{border:1px solid #e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;border-radius:4px}
 #content #toc>:first-child{margin-top:0}
 #content #toc>:last-child{margin-bottom:0}
@@ -185,7 +184,7 @@ body.toc2.toc-right{padding-left:0;padding-right:20em}}
 #content{margin-bottom:.625em}
 .sect1{padding-bottom:.625em}
 @media screen and (min-width:768px){#content{margin-bottom:1.25em}
-.sect1{padding-bottom:1.25em}}
+  .sect1{padding-bottom:1.25em}}
 .sect1:last-child{padding-bottom:0}
 .sect1+.sect1{border-top:1px solid #e7e7e9}
 #content h1>a.anchor,h2>a.anchor,h3>a.anchor,#toctitle>a.anchor,.sidebarblock>.content>.title>a.anchor,h4>a.anchor,h5>a.anchor,h6>a.anchor{position:absolute;z-index:1001;width:1.5ex;margin-left:-1.5ex;display:block;text-decoration:none!important;visibility:hidden;text-align:center;font-weight:400}
@@ -220,6 +219,7 @@ table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
 .literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class=highlight],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
 .literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
 .listingblock>.content{position:relative}
+.listingblock pre>code{display:block}
 .listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
 .listingblock:hover code[data-lang]::before{display:block}
 .listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
@@ -399,39 +399,39 @@ p{margin-bottom:1.25rem}
 .print-only{display:none!important}
 @page{margin:1.25cm .75cm}
 @media print{*{box-shadow:none!important;text-shadow:none!important}
-html{font-size:80%}
-a{color:inherit!important;text-decoration:underline!important}
-a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
-a[href^="http:"]:not(.bare)::after,a[href^="https:"]:not(.bare)::after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
-abbr[title]{border-bottom:1px dotted}
-abbr[title]::after{content:" (" attr(title) ")"}
-pre,blockquote,tr,img,object,svg{page-break-inside:avoid}
-thead{display:table-header-group}
-svg{max-width:100%}
-p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
-h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
-#header,#content,#footnotes,#footer{max-width:none}
-#toc,.sidebarblock,.exampleblock>.content{background:none!important}
-#toc{border-bottom:1px solid #dddddf!important;padding-bottom:0!important}
-body.book #header{text-align:center}
-body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em}
-body.book #header .details{border:0!important;display:block;padding:0!important}
-body.book #header .details span:first-child{margin-left:0!important}
-body.book #header .details br{display:block}
-body.book #header .details br+span::before{content:none!important}
-body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
-body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
-.listingblock code[data-lang]::before{display:block}
-#footer{padding:0 .9375em}
-.hide-on-print{display:none!important}
-.print-only{display:block!important}
-.hide-for-print{display:none!important}
-.show-for-print{display:inherit!important}}
+  html{font-size:80%}
+  a{color:inherit!important;text-decoration:underline!important}
+  a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
+  a[href^="http:"]:not(.bare)::after,a[href^="https:"]:not(.bare)::after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
+  abbr[title]{border-bottom:1px dotted}
+  abbr[title]::after{content:" (" attr(title) ")"}
+  pre,blockquote,tr,img,object,svg{page-break-inside:avoid}
+  thead{display:table-header-group}
+  svg{max-width:100%}
+  p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
+  h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
+  #header,#content,#footnotes,#footer{max-width:none}
+  #toc,.sidebarblock,.exampleblock>.content{background:none!important}
+  #toc{border-bottom:1px solid #dddddf!important;padding-bottom:0!important}
+  body.book #header{text-align:center}
+  body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em}
+  body.book #header .details{border:0!important;display:block;padding:0!important}
+  body.book #header .details span:first-child{margin-left:0!important}
+  body.book #header .details br{display:block}
+  body.book #header .details br+span::before{content:none!important}
+  body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
+  body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
+  .listingblock code[data-lang]::before{display:block}
+  #footer{padding:0 .9375em}
+  .hide-on-print{display:none!important}
+  .print-only{display:block!important}
+  .hide-for-print{display:none!important}
+  .show-for-print{display:inherit!important}}
 @media amzn-kf8,print{#header>h1:first-child{margin-top:1.25rem}
-.sect1{padding:0!important}
-.sect1+.sect1{border:0}
-#footer{background:none}
-#footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
+  .sect1{padding:0!important}
+  .sect1+.sect1{border:0}
+  #footer{background:none}
+  #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/github.min.css">
@@ -462,13 +462,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_ejercicios_propuestos">4. Ejercicios Propuestos</a>
-<ul class="sectlevel2">
-<li><a href="#_ejercicio_1_notificación_de_errores_mejorada_dificultad_baja">4.1. Ejercicio 1: Notificación de Errores Mejorada (Dificultad: Baja)</a></li>
-<li><a href="#_ejercicio_2_sub_flujo_de_validación_de_datos_dificultad_media">4.2. Ejercicio 2: Sub-Flujo de Validación de Datos (Dificultad: Media)</a></li>
-<li><a href="#_ejercicio_3_orquestador_de_tareas_dinámicas_dificultad_alta">4.3. Ejercicio 3: Orquestador de Tareas Dinámicas (Dificultad: Alta)</a></li>
+<ul class="sectlevel3">
 </ul>
 </li>
-<li><a href="#_sección_5_conclusiones_y_avance_de_la_próxima_práctica">5. Sección 5: Conclusiones y Avance de la Próxima Práctica</a></li>
+<li><a href="#_conclusiones_y_avance_de_la_próxima_práctica">5. Conclusiones y Avance de la Próxima Práctica</a></li>
 </ul>
 </div>
 </div>
@@ -477,19 +474,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_resumen">Resumen</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Resumen la Práctica 4</p>
+<p>Esta práctica se centra en la fiabilidad y la mantenibilidad de los flujos de trabajo. Se introduce el manejo de errores mediante el <code>Error Trigger</code> (un flujo de trabajo dedicado que se activa cuando otro falla) y el nodo <code>Stop and Error</code> (para detener deliberadamente un flujo cuando los datos no cumplen las condiciones esperadas). Además, se aborda la modularidad a través de sub-flujos de trabajo con el par de nodos <code>Execute Workflow</code> y <code>Execute Workflow Trigger</code>, aplicando el principio DRY a la automatización. A lo largo de la sesión se construye un sistema de tres flujos de trabajo (principal, sub-flujo y manejador de errores) y se resuelven varios ejercicios de complejidad creciente.</p>
 </div>
 <div class="ulist">
 <div class="title">Objetivos</div>
 <ul>
 <li>
-<p>Diseño de Flujos de Trabajo Resilientes:.</p>
+<p>Diseño de Flujos de Trabajo Resilientes.</p>
 </li>
 <li>
 <p>Manejo de Errores Centralizado.</p>
 </li>
 <li>
-<p>Control de Errores Proactivo</p>
+<p>Control de Errores Proactivo.</p>
 </li>
 <li>
 <p>Principios de Modularidad (DRY).</p>
@@ -648,7 +645,7 @@ Esto permite que el flujo de trabajo de errores envíe notificaciones muy detall
 </div>
 </li>
 <li>
-<p>Guarde este flujo de trabajo. No necesita ser activado.</p>
+<p>Guarde y active este flujo de trabajo. A diferencia de los sub-flujos (Paso 2), el flujo de errores <strong>sí</strong> debe estar activado para poder capturar los fallos de los demás flujos.</p>
 </li>
 </ol>
 </div>
@@ -683,10 +680,10 @@ Esto permite que el flujo de trabajo de errores envíe notificaciones muy detall
 </div>
 </li>
 <li>
-<p>(Opcional) Conecte un nodo <code>Google Drive</code> o <code>Write Binary File</code> para guardar la imagen descargada.</p>
+<p>(Opcional) Conecte un nodo <code>Google Drive</code> o <code>Read/Write Files from Disk</code> para guardar la imagen descargada.</p>
 </li>
 <li>
-<p>Guarde y active este flujo de trabajo. Anote su ID de la URL del navegador (el número al final).</p>
+<p>Guarde este flujo de trabajo. <strong>No es necesario activarlo</strong>: los sub-flujos llamados mediante el nodo <code>Execute Workflow</code> se ejecutan aunque estén desactivados. Anote su ID (visible al final de la URL del navegador al editar el flujo) para el siguiente paso.</p>
 </li>
 </ol>
 </div>
@@ -736,8 +733,8 @@ Esto permite que el flujo de trabajo de errores envíe notificaciones muy detall
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
-  {"imageUrl": "https://random.dog/woof.json"},
-  {"imageUrl": "https://randomfox.ca/floof/"},
+  {"imageUrl": "https://placedog.net/320/240"},
+  {"imageUrl": "https://dummyimage.com/320x240"},
   {"imageUrl": "https://esta-url-no-existe.xyz/imagen.jpg"}
 ]</code></pre>
 </div>
@@ -773,7 +770,7 @@ Esto permite que el flujo de trabajo de errores envíe notificaciones muy detall
 <p>Conecte un nodo <code>Execute Workflow</code> al <code>Split Out</code>.</p>
 </li>
 <li>
-<p><strong>Workflow ID:</strong> Introduzca el ID del sub-flujo "Descargador de Imágenes" que anotó anteriormente.</p>
+<p><strong>Workflow:</strong> Seleccione el sub-flujo "Sub-flujo: Descargador de Imágenes" en el desplegable (o introduzca el ID que anotó en el Paso 2).</p>
 </li>
 <li>
 <p>El nodo pasará automáticamente el ítem actual (<code>{ "json": { "imageUrl": "&#8230;&#8203;" } }</code>) como entrada al sub-flujo.</p>
@@ -805,8 +802,8 @@ Esto permite que el flujo de trabajo de errores envíe notificaciones muy detall
 <div class="sect1">
 <h2 id="_ejercicios_propuestos">4. Ejercicios Propuestos</h2>
 <div class="sectionbody">
-<div class="sect2">
-<h3 id="_ejercicio_1_notificación_de_errores_mejorada_dificultad_baja">4.1. Ejercicio 1: Notificación de Errores Mejorada (Dificultad: Baja)</h3>
+<div class="sect3">
+<h4 id="_ejercicio_1_notificación_de_errores_mejorada_dificultad_baja">4.1. Ejercicio 1: Notificación de Errores Mejorada (Dificultad: Baja)</h4>
 <div class="paragraph">
 <p><strong>Objetivo:</strong> Mejorar el "Manejador de Errores" para que, además de registrar el error en Google Sheets, envíe una notificación por correo electrónico.</p>
 </div>
@@ -816,10 +813,13 @@ Esto permite que el flujo de trabajo de errores envíe notificaciones muy detall
 <div class="olist arabic">
 <ol class="arabic">
 <li>
+<p>Cree una credencial SMTP en n8n. Para las pruebas puede usar un servicio de correo de pruebas gratuito (como Mailtrap o Brevo) o una cuenta de Gmail con una contraseña de aplicación.</p>
+</li>
+<li>
 <p>Modifique el flujo de trabajo "Manejador de Errores".</p>
 </li>
 <li>
-<p>Añada un nodo <code>Send Email</code> (o un nodo de Slack/Telegram si lo prefiere).</p>
+<p>Añada un nodo <code>Send Email</code> (o un nodo de Slack/Telegram si lo prefiere) después del nodo de Google Sheets y seleccione la credencial SMTP.</p>
 </li>
 <li>
 <p>Configure el nodo para enviar un correo con un asunto claro (ej. "¡Alerta de Error en n8n!").</p>
@@ -827,11 +827,14 @@ Esto permite que el flujo de trabajo de errores envíe notificaciones muy detall
 <li>
 <p>En el cuerpo del correo, incluya la misma información que se registra en Google Sheets (nombre del flujo, nodo, mensaje y URL), utilizando las expresiones del <code>Error Trigger</code>.</p>
 </li>
+<li>
+<p>Fuerce un error desde el flujo principal (ejecútelo con la URL incorrecta) y verifique que recibe el correo con todos los detalles.</p>
+</li>
 </ol>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_ejercicio_2_sub_flujo_de_validación_de_datos_dificultad_media">4.2. Ejercicio 2: Sub-Flujo de Validación de Datos (Dificultad: Media)</h3>
+<div class="sect3">
+<h4 id="_ejercicio_2_sub_flujo_de_validación_de_datos_dificultad_media">4.2. Ejercicio 2: Sub-Flujo de Validación de Datos (Dificultad: Media)</h4>
 <div class="paragraph">
 <p><strong>Objetivo:</strong> Crear un sub-flujo de trabajo reutilizable que valide la estructura de los datos de un producto y lance un error si faltan campos clave.</p>
 </div>
@@ -847,16 +850,29 @@ Esto permite que el flujo de trabajo de errores envíe notificaciones muy detall
 <p>Cree un sub-flujo llamado "Sub-flujo: Validador de Productos" que comience con un <code>Execute Workflow Trigger</code>.</p>
 </li>
 <li>
-<p>Dentro de este sub-flujo, use un nodo <code>IF</code> para comprobar si los campos <code>title</code> Y <code>price</code> existen y no están vacíos. (Pista: puede necesitar varias condiciones con el operador <code>AND</code>).</p>
+<p>Dentro de este sub-flujo, use un nodo <code>IF</code> con dos condiciones combinadas con el operador <code>AND</code>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>{{ $json.title }}</code> &#8594; tipo <code>String</code> &#8594; operación <code>is not empty</code></p>
 </li>
 <li>
-<p>Si la condición es <code>false</code> (falta alguno de los campos), conecte un nodo <code>Stop and Error</code> con el mensaje "Validación fallida: Faltan campos de producto obligatorios".</p>
+<p><code>{{ $json.price }}</code> &#8594; tipo <code>Number</code> &#8594; operación <code>exists</code></p>
+</li>
+</ul>
+</div>
 </li>
 <li>
-<p>Cree un flujo principal que llame a la Fake Store API para obtener un producto.</p>
+<p>En la rama <code>true</code> (producto válido), añada un nodo <code>Edit Fields (Set)</code> que cree un campo <code>validacion</code> con el valor <code>OK</code>. Este será el resultado que devuelva el sub-flujo al flujo principal.</p>
 </li>
 <li>
-<p>(Para forzar el error) Añada un nodo <code>Edit Fields (Set)</code> después de la llamada a la API para <strong>eliminar</strong> el campo <code>price</code> del objeto del producto.</p>
+<p>En la rama <code>false</code> (falta alguno de los campos), conecte un nodo <code>Stop and Error</code> con el mensaje "Validación fallida: Faltan campos de producto obligatorios".</p>
+</li>
+<li>
+<p>Cree un flujo principal que llame a la Fake Store API para obtener el producto 1.</p>
+</li>
+<li>
+<p>(Para forzar el error) Añada un nodo <code>Edit Fields (Set)</code> después de la llamada a la API para <strong>eliminar</strong> el campo <code>price</code> del objeto: añada un campo llamado <code>price</code> y cambie su <strong>Tipo</strong> a <code>Remove</code>.</p>
 </li>
 <li>
 <p>Llame al sub-flujo "Validador de Productos" con el nodo <code>Execute Workflow</code>.</p>
@@ -864,18 +880,21 @@ Esto permite que el flujo de trabajo de errores envíe notificaciones muy detall
 <li>
 <p>Asegúrese de que el flujo principal tiene configurado el "Manejador de Errores" y verifique que el error personalizado se registra correctamente en su hoja de Google Sheets.</p>
 </li>
+<li>
+<p><strong>Pregunta de reflexión:</strong> ¿Qué pasaría si, en lugar del nodo <code>Stop and Error</code>, la rama <code>false</code> simplemente no conectara ningún nodo? Investigue la diferencia entre que un flujo <strong>falle</strong> y que termine <strong>devolviendo ítems vacíos</strong>.</p>
+</li>
 </ol>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_ejercicio_3_orquestador_de_tareas_dinámicas_dificultad_alta">4.3. Ejercicio 3: Orquestador de Tareas Dinámicas (Dificultad: Alta)</h3>
+<div class="sect3">
+<h4 id="_ejercicio_3_orquestador_de_tareas_dinámicas_dificultad_alta">4.3. Ejercicio 3: Orquestador de Tareas Dinámicas (Dificultad: Alta)</h4>
 <div class="paragraph">
 <p><strong>Objetivo:</strong> Crear un flujo principal que decide qué tarea realizar y llama al sub-flujo apropiado para ejecutarla.</p>
 </div>
 <div class="paragraph">
 <p><strong>APIs a utilizar:</strong>
 * Bored API para actividades: <code><a href="https://bored-api.appbrewery.com/random" class="bare">https://bored-api.appbrewery.com/random</a></code>
-* Public Holidays API: <code><a href="https://date.nager.at/api/v3/PublicHolidays/2025/ES" class="bare">https://date.nager.at/api/v3/PublicHolidays/2025/ES</a></code></p>
+* Public Holidays API: <code><a href="https://date.nager.at/api/v3/PublicHolidays/2026/ES" class="bare">https://date.nager.at/api/v3/PublicHolidays/2026/ES</a></code></p>
 </div>
 <div class="paragraph">
 <p><strong>Requisitos:</strong></p>
@@ -899,10 +918,10 @@ Esto permite que el flujo de trabajo de errores envíe notificaciones muy detall
 <p>Cree un flujo principal que comience con un <code>Manual Trigger</code>.</p>
 </li>
 <li>
-<p>Añada un nodo <code>Edit Fields (Set)</code> que cree una variable de control, por ejemplo, <code>{"tarea": "actividad"}</code>.</p>
+<p>Añada un nodo <code>Edit Fields (Set)</code> que cree una variable de control: un campo <code>tarea</code> con el valor <code>actividad</code>.</p>
 </li>
 <li>
-<p>Use un nodo <code>Switch</code> que evalúe el campo <code>tarea</code>.</p>
+<p>Use un nodo <code>Switch</code> que evalúe el campo <code>{{ $json.tarea }}</code>.</p>
 <div class="ulist">
 <ul>
 <li>
@@ -915,10 +934,133 @@ Esto permite que el flujo de trabajo de errores envíe notificaciones muy detall
 </div>
 </li>
 <li>
-<p>Conecte un nodo <code>Merge</code> a las salidas de ambos nodos <code>Execute Workflow</code> para consolidar el resultado.</p>
+<p>Conecte un nodo <code>Merge</code> en modo <code>Append</code> a las salidas de ambos nodos <code>Execute Workflow</code> para consolidar el resultado.</p>
 </li>
 <li>
 <p>Añada un nodo <code>Edit Fields (Set)</code> final para verificar la salida. Pruebe el flujo cambiando el valor de la variable <code>tarea</code> a "festivos" y vuelva a ejecutarlo para confirmar que se llama al sub-flujo correcto.</p>
+</li>
+<li>
+<p><strong>Pregunta de reflexión:</strong> Observe que el sub-flujo de festivos devuelve un único ítem que contiene un array de 32 festivos, mientras que el de actividades devuelve un único objeto. ¿Cómo modificaría el flujo para que la salida final contuviera un ítem por festivo? (Pista: <code>Split Out</code> dentro del sub-flujo).</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_ejercicio_4_sub_flujo_notificador_reutilizable_dificultad_alta">4.4. Ejercicio 4: Sub-Flujo Notificador Reutilizable (Dificultad: Alta)</h4>
+<div class="paragraph">
+<p><strong>Objetivo:</strong> Aplicar el principio DRY creando un sub-flujo de notificación que centralice el registro de eventos, y llamarlo desde dos flujos de trabajo diferentes.</p>
+</div>
+<div class="paragraph">
+<p><strong>Requisitos:</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Cree un sub-flujo llamado "Sub-flujo: Notificador" que comience con un <code>Execute Workflow Trigger</code>. El sub-flujo recibirá un objeto con dos campos: <code>mensaje</code> (texto) y <code>nivel</code> ("INFO" o "ERROR").</p>
+</li>
+<li>
+<p>Dentro del sub-flujo, use un nodo <code>Switch</code> sobre el campo <code>{{ $json.nivel }}</code> para enrutar a dos nodos <code>Google Sheets</code>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Rama "INFO": escribe en una hoja llamada <code>Eventos</code>.</p>
+</li>
+<li>
+<p>Rama "ERROR": escribe en una hoja llamada <code>Alertas</code>.</p>
+</li>
+<li>
+<p>Ambas hojas deben incluir las columnas <code>Timestamp</code> (<code>{{ $now }}</code>), <code>Nivel</code> y <code>Mensaje</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Modifique el flujo "Manejador de Errores" (de la práctica guiada) para que, además de escribir en su hoja, llame al sub-flujo "Notificador" con <code>nivel</code> = <code>ERROR</code> y un <code>mensaje</code> construido a partir de los datos del error (por ejemplo, <code>{{ "Fallo en " + $json.workflow.name + ": " + $json.execution.error.message }}</code>).</p>
+</li>
+<li>
+<p>Modifique el flujo principal "Procesador Principal de Imágenes" para que, al final, llame al sub-flujo "Notificador" con <code>nivel</code> = <code>INFO</code> y un <code>mensaje</code> como <code>Procesamiento de imágenes completado</code>.</p>
+</li>
+<li>
+<p>Ejecute ambos flujos y verifique que los eventos aparecen en las hojas correctas.</p>
+</li>
+<li>
+<p><strong>Pregunta de reflexión:</strong> Si mañana necesita añadir un canal de notificación nuevo (por ejemplo, Slack), ¿cuántos flujos de trabajo tendría que modificar gracias a este diseño? ¿Y cuántos habría tenido que modificar si cada flujo escribiera sus notificaciones por su cuenta?</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_ejercicio_5_monitor_de_salud_de_apis_dificultad_muy_alta">4.5. Ejercicio 5: Monitor de Salud de APIs (Dificultad: Muy Alta)</h4>
+<div class="paragraph">
+<p><strong>Objetivo:</strong> Crear un flujo de trabajo programado que comprueba periódicamente el estado de varias APIs externas, de modo que un fallo individual no detenga el resto de comprobaciones, y registra el resultado de cada una en Google Sheets.</p>
+</div>
+<div class="paragraph">
+<p><strong>APIs a comprobar:</strong>
+* Fake Store API: <code><a href="https://fakestoreapi.com/products/1" class="bare">https://fakestoreapi.com/products/1</a></code>
+* JokeAPI: <code><a href="https://v2.jokeapi.dev/joke/Programming?type=single" class="bare">https://v2.jokeapi.dev/joke/Programming?type=single</a></code>
+* Nager.Date: <code><a href="https://date.nager.at/api/v3/PublicHolidays/2026/ES" class="bare">https://date.nager.at/api/v3/PublicHolidays/2026/ES</a></code></p>
+</div>
+<div class="paragraph">
+<p><strong>Requisitos:</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Cree un sub-flujo llamado "Sub-flujo: Comprobar API" que comience con un <code>Execute Workflow Trigger</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>El sub-flujo recibirá un objeto con un campo <code>url</code>.</p>
+</li>
+<li>
+<p>Dentro, use un nodo <code>HTTP Request</code> con la URL <code>{{ $json.url }}</code>.</p>
+</li>
+<li>
+<p>Añada un nodo <code>Edit Fields (Set)</code> que cree un campo <code>estado</code> con el valor <code>OK</code> (solo se alcanzará si la petición fue exitosa).</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Cree un flujo principal que comience con un <code>Schedule Trigger</code> que se ejecute cada hora.</p>
+</li>
+<li>
+<p>Añada un nodo <code>Edit Fields (Set)</code> (con tipo de dato <code>JSON</code>) que cree una lista <code>apis</code> con las tres URLs.</p>
+</li>
+<li>
+<p>Use un <code>Split Out</code> sobre <code>apis</code> para obtener un ítem por API.</p>
+</li>
+<li>
+<p>Llame al sub-flujo "Comprobar API" con un nodo <code>Execute Workflow</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Punto clave:</strong> En la pestaña <strong>Options</strong> del nodo <code>Execute Workflow</code>, active la opción <strong>On Error</strong> y selecciónela como <code>Continue</code>. Así, si una API falla, el flujo continuará con la siguiente en lugar de detenerse.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Añada un nodo <code>IF</code> que compruebe si el campo <code>{{ $json.estado }}</code> es igual a <code>OK</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Rama <code>true</code>: escriba en la hoja <code>Salud_OK</code> de un Google Sheet (columnas <code>URL</code> y <code>Hora</code> (<code>{{ $now }}</code>)).</p>
+</li>
+<li>
+<p>Rama <code>false</code>: escriba en la hoja <code>Salud_Fallo</code> (mismas columnas).</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Configure el "Manejador de Errores" como flujo de errores del monitor, por si algún fallo no esperado (por ejemplo, en el propio nodo de Google Sheets) detiene la ejecución.</p>
+</li>
+<li>
+<p>Active el flujo y espere a la siguiente ejecución programada para verificar los resultados en las hojas.</p>
+</li>
+<li>
+<p><strong>Pregunta de reflexión:</strong> ¿Por qué es importante combinar la opción <strong>On Error: Continue</strong> con el flujo de errores? ¿Qué tipo de fallos captura cada mecanismo?</p>
 </li>
 </ol>
 </div>
@@ -926,7 +1068,7 @@ Esto permite que el flujo de trabajo de errores envíe notificaciones muy detall
 </div>
 </div>
 <div class="sect1">
-<h2 id="_sección_5_conclusiones_y_avance_de_la_próxima_práctica">5. Sección 5: Conclusiones y Avance de la Próxima Práctica</h2>
+<h2 id="_conclusiones_y_avance_de_la_próxima_práctica">5. Conclusiones y Avance de la Próxima Práctica</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>En esta práctica, hemos elevado nuestras habilidades de diseño de automatización a un nuevo nivel, centrándonos en la robustez y la reutilización. Ahora somos capaces de construir sistemas que no solo funcionan en condiciones ideales, sino que también gestionan los fallos de manera predecible. La modularización mediante sub-flujos de trabajo nos permite crear soluciones más limpias, escalables y fáciles de mantener.</p>
@@ -949,7 +1091,7 @@ Esto permite que el flujo de trabajo de errores envíe notificaciones muy detall
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-10-21 11:56:01 +0200
+Last updated 2026-11-03 10:50:58 +0100
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

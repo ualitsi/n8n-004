@@ -19,13 +19,13 @@ Manel Mena <manel.mena@ual.es>
 [abstract]
 == Resumen
 
-Resumen la Práctica 4
+Esta práctica se centra en la fiabilidad y la mantenibilidad de los flujos de trabajo. Se introduce el manejo de errores mediante el `Error Trigger` (un flujo de trabajo dedicado que se activa cuando otro falla) y el nodo `Stop and Error` (para detener deliberadamente un flujo cuando los datos no cumplen las condiciones esperadas). Además, se aborda la modularidad a través de sub-flujos de trabajo con el par de nodos `Execute Workflow` y `Execute Workflow Trigger`, aplicando el principio DRY a la automatización. A lo largo de la sesión se construye un sistema de tres flujos de trabajo (principal, sub-flujo y manejador de errores) y se resuelven varios ejercicios de complejidad creciente.
 
 .Objetivos
 
-* Diseño de Flujos de Trabajo Resilientes:.
+* Diseño de Flujos de Trabajo Resilientes.
 * Manejo de Errores Centralizado.
-* Control de Errores Proactivo
+* Control de Errores Proactivo.
 * Principios de Modularidad (DRY).
 * Implementación de Sub-Flujos de Trabajo.
 
@@ -95,7 +95,7 @@ Este será nuestro "centro de monitoreo".
 ** `Nodo Fallido`: `{{ $json.execution.lastNodeExecuted }}`
 ** `Mensaje de Error`: `{{ $json.execution.error.message }}`
 ** `URL de Ejecución`: `{{ $json.execution.url }}`
-. Guarde este flujo de trabajo. No necesita ser activado.
+. Guarde y active este flujo de trabajo. A diferencia de los sub-flujos (Paso 2), el flujo de errores *sí* debe estar activado para poder capturar los fallos de los demás flujos.
 
 === Paso 2: Crear el Sub-Flujo de Trabajo "Descargador de Imágenes"
 
@@ -107,8 +107,8 @@ Esta será nuestra pieza de lógica reutilizable.
 . Configure el `HTTP Request`:
 ** *URL:* `{{ $json.imageUrl }}` (Asumimos que el flujo principal enviará un objeto con esta clave).
 ** *Options > Response Format:* `File`. Esto le dice a n8n que espere datos binarios como respuesta.
-. (Opcional) Conecte un nodo `Google Drive` o `Write Binary File` para guardar la imagen descargada.
-. Guarde y active este flujo de trabajo. Anote su ID de la URL del navegador (el número al final).
+. (Opcional) Conecte un nodo `Google Drive` o `Read/Write Files from Disk` para guardar la imagen descargada.
+. Guarde este flujo de trabajo. *No es necesario activarlo*: los sub-flujos llamados mediante el nodo `Execute Workflow` se ejecutan aunque estén desactivados. Anote su ID (visible al final de la URL del navegador al editar el flujo) para el siguiente paso.
 
 === Paso 3: Crear el Flujo de Trabajo Principal
 
@@ -128,8 +128,8 @@ Este flujo orquestará todo el proceso.
 [source,json]
 ----
 [
-  {"imageUrl": "https://random.dog/woof.json"},
-  {"imageUrl": "https://randomfox.ca/floof/"},
+  {"imageUrl": "https://placedog.net/320/240"},
+  {"imageUrl": "https://dummyimage.com/320x240"},
   {"imageUrl": "https://esta-url-no-existe.xyz/imagen.jpg"}
 ]
 ----
@@ -139,7 +139,7 @@ Este flujo orquestará todo el proceso.
 ** *Field To Split Out:* `imageUrls`
 . *Llamar al Sub-Flujo:*
 ** Conecte un nodo `Execute Workflow` al `Split Out`.
-** *Workflow ID:* Introduzca el ID del sub-flujo "Descargador de Imágenes" que anotó anteriormente.
+** *Workflow:* Seleccione el sub-flujo "Sub-flujo: Descargador de Imágenes" en el desplegable (o introduzca el ID que anotó en el Paso 2).
 ** El nodo pasará automáticamente el ítem actual (`{ "json": { "imageUrl": "..." } }`) como entrada al sub-flujo.
 . *Ejecutar y Verificar:*
 ** Ejecute el flujo de trabajo principal manualmente.
@@ -148,18 +148,20 @@ Este flujo orquestará todo el proceso.
 
 == Ejercicios Propuestos
 
-=== Ejercicio 1: Notificación de Errores Mejorada (Dificultad: Baja)
+==== Ejercicio 1: Notificación de Errores Mejorada (Dificultad: Baja)
 
 *Objetivo:* Mejorar el "Manejador de Errores" para que, además de registrar el error en Google Sheets, envíe una notificación por correo electrónico.
 
 *Requisitos:*
 
+. Cree una credencial SMTP en n8n. Para las pruebas puede usar un servicio de correo de pruebas gratuito (como Mailtrap o Brevo) o una cuenta de Gmail con una contraseña de aplicación.
 . Modifique el flujo de trabajo "Manejador de Errores".
-. Añada un nodo `Send Email` (o un nodo de Slack/Telegram si lo prefiere).
+. Añada un nodo `Send Email` (o un nodo de Slack/Telegram si lo prefiere) después del nodo de Google Sheets y seleccione la credencial SMTP.
 . Configure el nodo para enviar un correo con un asunto claro (ej. "¡Alerta de Error en n8n!").
 . En el cuerpo del correo, incluya la misma información que se registra en Google Sheets (nombre del flujo, nodo, mensaje y URL), utilizando las expresiones del `Error Trigger`.
+. Fuerce un error desde el flujo principal (ejecútelo con la URL incorrecta) y verifique que recibe el correo con todos los detalles.
 
-=== Ejercicio 2: Sub-Flujo de Validación de Datos (Dificultad: Media)
+==== Ejercicio 2: Sub-Flujo de Validación de Datos (Dificultad: Media)
 
 *Objetivo:* Crear un sub-flujo de trabajo reutilizable que valide la estructura de los datos de un producto y lance un error si faltan campos clave.
 
@@ -168,20 +170,24 @@ Este flujo orquestará todo el proceso.
 *Requisitos:*
 
 . Cree un sub-flujo llamado "Sub-flujo: Validador de Productos" que comience con un `Execute Workflow Trigger`.
-. Dentro de este sub-flujo, use un nodo `IF` para comprobar si los campos `title` Y `price` existen y no están vacíos. (Pista: puede necesitar varias condiciones con el operador `AND`).
-. Si la condición es `false` (falta alguno de los campos), conecte un nodo `Stop and Error` con el mensaje "Validación fallida: Faltan campos de producto obligatorios".
-. Cree un flujo principal que llame a la Fake Store API para obtener un producto.
-. (Para forzar el error) Añada un nodo `Edit Fields (Set)` después de la llamada a la API para *eliminar* el campo `price` del objeto del producto.
+. Dentro de este sub-flujo, use un nodo `IF` con dos condiciones combinadas con el operador `AND`:
+** `{{ $json.title }}` -> tipo `String` -> operación `is not empty`
+** `{{ $json.price }}` -> tipo `Number` -> operación `exists`
+. En la rama `true` (producto válido), añada un nodo `Edit Fields (Set)` que cree un campo `validacion` con el valor `OK`. Este será el resultado que devuelva el sub-flujo al flujo principal.
+. En la rama `false` (falta alguno de los campos), conecte un nodo `Stop and Error` con el mensaje "Validación fallida: Faltan campos de producto obligatorios".
+. Cree un flujo principal que llame a la Fake Store API para obtener el producto 1.
+. (Para forzar el error) Añada un nodo `Edit Fields (Set)` después de la llamada a la API para *eliminar* el campo `price` del objeto: añada un campo llamado `price` y cambie su *Tipo* a `Remove`.
 . Llame al sub-flujo "Validador de Productos" con el nodo `Execute Workflow`.
 . Asegúrese de que el flujo principal tiene configurado el "Manejador de Errores" y verifique que el error personalizado se registra correctamente en su hoja de Google Sheets.
+. *Pregunta de reflexión:* ¿Qué pasaría si, en lugar del nodo `Stop and Error`, la rama `false` simplemente no conectara ningún nodo? Investigue la diferencia entre que un flujo *falle* y que termine *devolviendo ítems vacíos*.
 
-=== Ejercicio 3: Orquestador de Tareas Dinámicas (Dificultad: Alta)
+==== Ejercicio 3: Orquestador de Tareas Dinámicas (Dificultad: Alta)
 
 *Objetivo:* Crear un flujo principal que decide qué tarea realizar y llama al sub-flujo apropiado para ejecutarla.
 
 *APIs a utilizar:*
 * Bored API para actividades: `https://bored-api.appbrewery.com/random`
-* Public Holidays API: `https://date.nager.at/api/v3/PublicHolidays/2025/ES`
+* Public Holidays API: `https://date.nager.at/api/v3/PublicHolidays/2026/ES`
 
 *Requisitos:*
 
@@ -189,14 +195,58 @@ Este flujo orquestará todo el proceso.
 ** "Sub-flujo: Obtener Actividad": Llama a la Bored API y devuelve la actividad.
 ** "Sub-flujo: Obtener Festivos": Llama a la API de festivos y devuelve la lista de festivos.
 . Cree un flujo principal que comience con un `Manual Trigger`.
-. Añada un nodo `Edit Fields (Set)` que cree una variable de control, por ejemplo, `{"tarea": "actividad"}`.
-. Use un nodo `Switch` que evalúe el campo `tarea`.
+. Añada un nodo `Edit Fields (Set)` que cree una variable de control: un campo `tarea` con el valor `actividad`.
+. Use un nodo `Switch` que evalúe el campo `{{ $json.tarea }}`.
 ** Si `tarea` es "actividad", conecte un nodo `Execute Workflow` que llame al sub-flujo "Obtener Actividad".
 ** Si `tarea` es "festivos", conecte un nodo `Execute Workflow` que llame al sub-flujo "Obtener Festivos".
-. Conecte un nodo `Merge` a las salidas de ambos nodos `Execute Workflow` para consolidar el resultado.
+. Conecte un nodo `Merge` en modo `Append` a las salidas de ambos nodos `Execute Workflow` para consolidar el resultado.
 . Añada un nodo `Edit Fields (Set)` final para verificar la salida. Pruebe el flujo cambiando el valor de la variable `tarea` a "festivos" y vuelva a ejecutarlo para confirmar que se llama al sub-flujo correcto.
+. *Pregunta de reflexión:* Observe que el sub-flujo de festivos devuelve un único ítem que contiene un array de 32 festivos, mientras que el de actividades devuelve un único objeto. ¿Cómo modificaría el flujo para que la salida final contuviera un ítem por festivo? (Pista: `Split Out` dentro del sub-flujo).
 
-== Sección 5: Conclusiones y Avance de la Próxima Práctica
+==== Ejercicio 4: Sub-Flujo Notificador Reutilizable (Dificultad: Alta)
+
+*Objetivo:* Aplicar el principio DRY creando un sub-flujo de notificación que centralice el registro de eventos, y llamarlo desde dos flujos de trabajo diferentes.
+
+*Requisitos:*
+
+. Cree un sub-flujo llamado "Sub-flujo: Notificador" que comience con un `Execute Workflow Trigger`. El sub-flujo recibirá un objeto con dos campos: `mensaje` (texto) y `nivel` ("INFO" o "ERROR").
+. Dentro del sub-flujo, use un nodo `Switch` sobre el campo `{{ $json.nivel }}` para enrutar a dos nodos `Google Sheets`:
+** Rama "INFO": escribe en una hoja llamada `Eventos`.
+** Rama "ERROR": escribe en una hoja llamada `Alertas`.
+** Ambas hojas deben incluir las columnas `Timestamp` (`{{ $now }}`), `Nivel` y `Mensaje`.
+. Modifique el flujo "Manejador de Errores" (de la práctica guiada) para que, además de escribir en su hoja, llame al sub-flujo "Notificador" con `nivel` = `ERROR` y un `mensaje` construido a partir de los datos del error (por ejemplo, `{{ "Fallo en " + $json.workflow.name + ": " + $json.execution.error.message }}`).
+. Modifique el flujo principal "Procesador Principal de Imágenes" para que, al final, llame al sub-flujo "Notificador" con `nivel` = `INFO` y un `mensaje` como `Procesamiento de imágenes completado`.
+. Ejecute ambos flujos y verifique que los eventos aparecen en las hojas correctas.
+. *Pregunta de reflexión:* Si mañana necesita añadir un canal de notificación nuevo (por ejemplo, Slack), ¿cuántos flujos de trabajo tendría que modificar gracias a este diseño? ¿Y cuántos habría tenido que modificar si cada flujo escribiera sus notificaciones por su cuenta?
+
+==== Ejercicio 5: Monitor de Salud de APIs (Dificultad: Muy Alta)
+
+*Objetivo:* Crear un flujo de trabajo programado que comprueba periódicamente el estado de varias APIs externas, de modo que un fallo individual no detenga el resto de comprobaciones, y registra el resultado de cada una en Google Sheets.
+
+*APIs a comprobar:*
+* Fake Store API: `https://fakestoreapi.com/products/1`
+* JokeAPI: `https://v2.jokeapi.dev/joke/Programming?type=single`
+* Nager.Date: `https://date.nager.at/api/v3/PublicHolidays/2026/ES`
+
+*Requisitos:*
+
+. Cree un sub-flujo llamado "Sub-flujo: Comprobar API" que comience con un `Execute Workflow Trigger`.
+** El sub-flujo recibirá un objeto con un campo `url`.
+** Dentro, use un nodo `HTTP Request` con la URL `{{ $json.url }}`.
+** Añada un nodo `Edit Fields (Set)` que cree un campo `estado` con el valor `OK` (solo se alcanzará si la petición fue exitosa).
+. Cree un flujo principal que comience con un `Schedule Trigger` que se ejecute cada hora.
+. Añada un nodo `Edit Fields (Set)` (con tipo de dato `JSON`) que cree una lista `apis` con las tres URLs.
+. Use un `Split Out` sobre `apis` para obtener un ítem por API.
+. Llame al sub-flujo "Comprobar API" con un nodo `Execute Workflow`.
+** *Punto clave:* En la pestaña *Options* del nodo `Execute Workflow`, active la opción *On Error* y selecciónela como `Continue`. Así, si una API falla, el flujo continuará con la siguiente en lugar de detenerse.
+. Añada un nodo `IF` que compruebe si el campo `{{ $json.estado }}` es igual a `OK`.
+** Rama `true`: escriba en la hoja `Salud_OK` de un Google Sheet (columnas `URL` y `Hora` (`{{ $now }}`)).
+** Rama `false`: escriba en la hoja `Salud_Fallo` (mismas columnas).
+. Configure el "Manejador de Errores" como flujo de errores del monitor, por si algún fallo no esperado (por ejemplo, en el propio nodo de Google Sheets) detiene la ejecución.
+. Active el flujo y espere a la siguiente ejecución programada para verificar los resultados en las hojas.
+. *Pregunta de reflexión:* ¿Por qué es importante combinar la opción *On Error: Continue* con el flujo de errores? ¿Qué tipo de fallos captura cada mecanismo?
+
+== Conclusiones y Avance de la Próxima Práctica
 
 En esta práctica, hemos elevado nuestras habilidades de diseño de automatización a un nuevo nivel, centrándonos en la robustez y la reutilización. Ahora somos capaces de construir sistemas que no solo funcionan en condiciones ideales, sino que también gestionan los fallos de manera predecible. La modularización mediante sub-flujos de trabajo nos permite crear soluciones más limpias, escalables y fáciles de mantener.
 
